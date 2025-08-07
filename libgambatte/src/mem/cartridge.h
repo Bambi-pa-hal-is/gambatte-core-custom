@@ -25,6 +25,7 @@
 #include "scoped_ptr.h"
 #include "array.h"
 #include "newstate.h"
+#include <cstdint>
 
 #include <string>
 #include <vector>
@@ -107,6 +108,9 @@ public:
 	void cameraWrite(unsigned p, unsigned data, unsigned long const cc) { camera_.write(p, data, cc); }
 	void setCameraCallback(void (*callback)(int *cameraBuf)) { camera_.setCameraCallback(callback); }
 	template<bool isReader>void SyncState(NewState *ns);
+	uint8_t* mutableRomData() {
+		return memptrs_.romdata(); // Already returns a writable pointer
+	}
 
 private:
 	unsigned char romHeader[0x150];

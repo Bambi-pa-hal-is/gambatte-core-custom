@@ -19,6 +19,8 @@
 #include "cpu.h"
 #include "memory.h"
 #include "savestate.h"
+#include <windows.h>
+
 
 namespace gambatte {
 
@@ -85,6 +87,7 @@ static inline unsigned toF(unsigned hf2, unsigned cf, unsigned zf) {
 static inline unsigned  zfFromF(unsigned f) { return ~f & 0x80; }
 static inline unsigned hf2FromF(unsigned f) { return f << 4 & (hf2_subf | hf2_hcf); }
 static inline unsigned  cfFromF(unsigned f) { return f << 4 & 0x100; }
+
 
 void CPU::setStatePtrs(SaveState &state) {
 	mem_.setStatePtrs(state);
@@ -523,6 +526,11 @@ void CPU::process(unsigned long const cycles) {
 
 	unsigned long cycleCounter = cycleCounter_;
 
+	uint16_t pcNow = 0;
+	unsigned romBank = 0;
+	int romAddress = -1;
+	const CustomInstruction* instr = nullptr;
+
 	while (mem_.isActive()) {
 
 		if (mem_.halted()) {
@@ -576,7 +584,7 @@ void CPU::process(unsigned long const cycles) {
 				cycleCounter += 4;
 				prefetched_ = false;
 			}
-
+			dispatch:
 			switch (opcode) {
 			case 0x00:
 				break;
@@ -1837,10 +1845,27 @@ void CPU::process(unsigned long const cycles) {
 
 				break;
 
-			case 0xDD: // not specified. should freeze.
-				cycleCounter = freeze(mem_, cycleCounter);
-				break;
+			case 0xDD: // custom instruction for listening to ingame events
+				pcNow = pc;
+				romBank = mem_.getBank(MemPtrs::ROMX_BANK);
+				romAddress = (pcNow < 0x4000)
+					? pcNow
+					: (pcNow < 0x8000)
+						? 0x4000 * romBank + (pcNow - 0x4000)
+						: -1;
+				opcode = instr->originalOpcode;
+				if (romAddress == -1)
+					goto dispatch;
 
+				MessageBoxA(NULL, "0xDD instruction hit!", "Rom address är inte -1", MB_OK | MB_ICONINFORMATION);
+
+				instr = customDispatch_ ? customDispatch_(romAddress, customDispatchUserData_) : nullptr;
+				if (!instr)
+					goto dispatch;
+
+				instr->callback(instr->userData);
+
+				goto dispatch;
 			case 0xDE:
 				{
 					unsigned data;

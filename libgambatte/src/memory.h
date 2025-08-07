@@ -371,6 +371,9 @@ public:
 	}
 
 	template<bool isReader>void SyncState(NewState *ns);
+	Cartridge &cart() { 
+		return cart_; 
+	}
 
 private:
 	Cartridge cart_;

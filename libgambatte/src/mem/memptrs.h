@@ -52,6 +52,10 @@ inline std::size_t wrambank_size() { return 0x1000; }
 
 class MemPtrs {
 public:
+	enum { ROM0_BANK, ROMX_BANK, VRAM_BANK, SRAM_BANK, WRAM_BANK, NUM_BANK_TYPES };
+	static constexpr unsigned RomxBankType = ROMX_BANK;
+
+
 	enum RamFlag { disabled = 0, read_en = 1, write_en = 2, rtc_en = 4 };
 
 	MemPtrs();
@@ -105,7 +109,6 @@ private:
 	int memchunk_saveoffs;
 	int memchunk_savelen;
 
-	enum { ROM0_BANK, ROMX_BANK, VRAM_BANK, SRAM_BANK, WRAM_BANK, NUM_BANK_TYPES };
 	unsigned banks_[NUM_BANK_TYPES];
 
 	static std::size_t pre_rom_pad_size() { return mm_rom1_begin; }

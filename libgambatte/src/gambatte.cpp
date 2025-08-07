@@ -28,6 +28,8 @@
 #include <cstring>
 #include <sstream>
 
+extern const gambatte::CustomInstruction* DispatchCustomInstruction(unsigned romAddress, void* userData);
+
 using namespace gambatte;
 
 namespace {
@@ -103,6 +105,17 @@ std::ptrdiff_t GB::runFor(gambatte::uint_least32_t *const videoBuf, std::ptrdiff
 	return cyclesSinceBlit >= 0
 	     ? static_cast<std::ptrdiff_t>(samples) - (cyclesSinceBlit >> 1)
 	     : cyclesSinceBlit;
+}
+
+void GB::addCustomInstruction(int address, CustomInstructionCallback cb, void* userData) {
+	uint8_t* rom = p_->cpu.mem().cart().mutableRomData();
+
+	if (rom) {
+		uint8_t originalOpcode = rom[address];
+		rom[address] = 0xDD;
+		customInstructions.push_back({ address, originalOpcode, cb, userData });
+		p_->cpu.setCustomInstructionDispatcher(&DispatchCustomInstruction, this);
+	}
 }
 
 unsigned GB::updateScreenBorder(uint_least32_t *videoBuf, std::ptrdiff_t pitch) {
@@ -189,6 +202,17 @@ void GB::setSaveDir(std::string const &sdir) {
 	p_->cpu.setSaveDir(sdir);
 }
 
+
+const CustomInstruction* DispatchCustomInstruction(unsigned romAddress, void* userData) {
+	auto* gb = static_cast<GB*>(userData);
+	for (const auto& instr : gb->customInstructions) {
+		if (instr.address == static_cast<int>(romAddress)) {
+			return &instr;
+		}
+	}
+	return nullptr;
+}
+
 LoadRes GB::load(std::string const &romfile, unsigned const flags) {
 	if (p_->cpu.loaded() && p_->implicitSave())
 		p_->cpu.saveSavedata();
@@ -211,7 +235,6 @@ LoadRes GB::load(std::string const &romfile, unsigned const flags) {
 		p_->loadflags = flags;
 		p_->resetInternal(0, true);
 		p_->cpu.loadSavedata();
-
 		p_->stateNo = 1;
 		p_->cpu.setOsdElement(transfer_ptr<OsdElement>());
 	}
@@ -527,6 +550,8 @@ int GB::getDivState() {
 void GB::setSpeedupFlags(unsigned flags) {
 	p_->cpu.setSpeedupFlags(flags);
 }
+
+void emulateOriginalOpcode(uint8_t opcode);
 
 SYNCFUNC(GB) {
 	SSS(p_->cpu);

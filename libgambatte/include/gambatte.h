@@ -23,6 +23,7 @@
 #include "inputgetter.h"
 #include "loadres.h"
 #include "pakinfo.h"
+#include <vector>
 #include "../src/newstate.h"
 
 #include <cstddef>
@@ -34,6 +35,14 @@ enum { BG_PALETTE = 0, SP1_PALETTE = 1, SP2_PALETTE = 2 };
 
 typedef void (*MemoryCallback)(int32_t address, int64_t cycleOffset);
 typedef void (*CDCallback)(int32_t addr, int32_t addrtype, int32_t flags);
+typedef void (*CustomInstructionCallback)(void* userData);
+
+struct CustomInstruction {
+	int address;
+	uint8_t originalOpcode;
+	CustomInstructionCallback callback;
+	void* userData;
+};
 
 enum eCDLog_AddrType {
 	eCDLog_AddrType_ROM,
@@ -84,6 +93,10 @@ public:
 	  * @return 0 on success, negative value on failure.
 	  */
 	LoadRes load(char const *romfiledata, std::size_t size, unsigned flags);
+
+	std::vector<CustomInstruction> customInstructions;
+
+	void addCustomInstruction(int address, CustomInstructionCallback cb, void* userData);
 
 	/**
 	  * Load bios image.
