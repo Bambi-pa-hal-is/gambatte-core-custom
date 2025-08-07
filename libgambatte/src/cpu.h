@@ -25,6 +25,10 @@
 namespace gambatte {
 
 class CPU {
+
+using CustomInstructionDispatcher = const CustomInstruction*(*)(unsigned, void*);
+
+
 public:
 	CPU();
 	long runFor(unsigned long cycles);
@@ -39,6 +43,11 @@ public:
 	void saveSavedata() { mem_.saveSavedata(cycleCounter_); }
 
 	bool getMemoryArea(int which, unsigned char **data, int *length) { return mem_.getMemoryArea(which, data, length); }
+
+	void setCustomInstructionDispatcher(CustomInstructionDispatcher dispatcher, void* userData) {
+		customDispatch_ = dispatcher;
+		customDispatchUserData_ = userData;
+	}
 
 	void setVideoBuffer(uint_least32_t *videoBuf, std::ptrdiff_t pitch) {
 		mem_.setVideoBuffer(videoBuf, pitch);
@@ -172,6 +181,12 @@ public:
 
 	template<bool isReader>void SyncState(NewState *ns);
 
+	uint8_t* getRomData() {
+		return mem_.cart().mutableRomData();
+	}
+	Memory &mem() { return mem_; }
+
+
 private:
 	Memory mem_;
 	unsigned long cycleCounter_;
@@ -189,6 +204,8 @@ private:
 	template <bool callbacksActive> void process(unsigned long cycles);
 
 	void (*traceCallback_)(void *);
+	const CustomInstruction* (*customDispatch_)(unsigned romAddress, void* userData) = nullptr;
+	void* customDispatchUserData_ = nullptr;
 };
 
 }
