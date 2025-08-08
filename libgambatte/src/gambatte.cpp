@@ -110,12 +110,17 @@ std::ptrdiff_t GB::runFor(gambatte::uint_least32_t *const videoBuf, std::ptrdiff
 void GB::addCustomInstruction(int address, CustomInstructionCallback cb, void* userData) {
 	uint8_t* rom = p_->cpu.mem().cart().mutableRomData();
 
-	if (rom) {
-		uint8_t originalOpcode = rom[address];
-		rom[address] = 0xDD;
-		customInstructions.push_back({ address, originalOpcode, cb, userData });
-		p_->cpu.setCustomInstructionDispatcher(&DispatchCustomInstruction, this);
-	}
+	if (!rom)
+		return;
+
+	uint8_t originalOpcode = rom[address];
+	rom[address] = 0xDD;
+
+	// Store the custom instruction
+	customInstructions.push_back({ address, originalOpcode, cb, userData });
+
+	// Register dispatcher
+	p_->cpu.setCustomInstructionDispatcher(&DispatchCustomInstruction, this);
 }
 
 unsigned GB::updateScreenBorder(uint_least32_t *videoBuf, std::ptrdiff_t pitch) {

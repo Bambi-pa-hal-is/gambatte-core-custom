@@ -35,7 +35,7 @@ enum { BG_PALETTE = 0, SP1_PALETTE = 1, SP2_PALETTE = 2 };
 
 typedef void (*MemoryCallback)(int32_t address, int64_t cycleOffset);
 typedef void (*CDCallback)(int32_t addr, int32_t addrtype, int32_t flags);
-typedef void (*CustomInstructionCallback)(void* userData);
+typedef void(*CustomInstructionCallback)(int romAddress, void* userData);
 
 struct CustomInstruction {
 	int address;

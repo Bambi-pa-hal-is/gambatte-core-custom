@@ -370,9 +370,7 @@ namespace
 		g->setSpeedupFlags(flags);
 	}
 
-	typedef void (*CustomInstructionCallback)(void *userData);
-
-	GBEXPORT void gambatte_addcustominstruction(GB *g, int address, CustomInstructionCallback cb, void *userData)
+	GBEXPORT void gambatte_addcustominstruction(GB* g, int address, CustomInstructionCallback cb, void* userData)
 	{
 		g->addCustomInstruction(address, cb, userData);
 	}
