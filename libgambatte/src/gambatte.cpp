@@ -123,6 +123,19 @@ void GB::addCustomInstruction(int address, CustomInstructionCallback cb, void* u
 	p_->cpu.setCustomInstructionDispatcher(&DispatchCustomInstruction, this);
 }
 
+void GB::setNopRange(int address, int length) {
+	if (length <= 0)
+		return;
+
+	uint8_t* rom = p_->cpu.mem().cart().mutableRomData();
+	if (!rom)
+		return;
+
+	for (int i = 0; i < length; ++i) {
+		rom[address + i] = 0x00; // LR35902/GBZ80 NOP
+	}
+}
+
 unsigned GB::updateScreenBorder(uint_least32_t *videoBuf, std::ptrdiff_t pitch) {
 	return p_->cpu.updateScreenBorder(videoBuf, pitch);
 }

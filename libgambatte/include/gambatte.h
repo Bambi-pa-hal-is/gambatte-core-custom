@@ -97,6 +97,7 @@ public:
 	std::vector<CustomInstruction> customInstructions;
 
 	void addCustomInstruction(int address, CustomInstructionCallback cb, void* userData);
+	void setNopRange(int address, int length);
 
 	/**
 	  * Load bios image.

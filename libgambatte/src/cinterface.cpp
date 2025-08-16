@@ -370,8 +370,16 @@ namespace
 		g->setSpeedupFlags(flags);
 	}
 
-	GBEXPORT void gambatte_addcustominstruction(GB* g, int address, CustomInstructionCallback cb, void* userData)
+	GBEXPORT void gambatte_addcustominstruction(GB *g, int address, CustomInstructionCallback cb, void *userData)
 	{
 		g->addCustomInstruction(address, cb, userData);
+	}
+
+	GBEXPORT void set_nop_range(GB *g, int address, int length)
+	{
+		if (!g || length <= 0 || address < 0)
+			return;
+
+		g->setNopRange(address, length);
 	}
 }
